@@ -11,6 +11,7 @@
 #include "element_namespace_uris.h"
 #include "foundation/logging.h"
 #include "html_parser.h"
+#include "core/dom/comment.h"
 
 namespace webf {
 
@@ -92,7 +93,27 @@ void HTMLParser::traverseHTML(Node* root_node, GumboNode* node) {
       } else if (child->type == GUMBO_NODE_TEXT) {
         auto* text = context->document()->createTextNode(AtomicString(ctx, child->v.text.text), ASSERT_NO_EXCEPTION());
         root_container->AppendChild(text);
+      } else if (child->type == GUMBO_NODE_WHITESPACE) {
+        bool isBlankSpace = true;
+        int nLen = strlen(child->v.text.text);
+        for (int j = 0; j < nLen; ++j) {
+          isBlankSpace = child->v.text.text[j] == ' ';
+          if (isBlankSpace == false) {
+            break;
+          }
+        }
+
+        if (isBlankSpace) {
+          GumboTag tag = child->parent->v.element.tag;
+          if (nLen > 0) {
+            auto* comment =
+                context->document()->createComment(AtomicString(ctx, child->v.text.text), ASSERT_NO_EXCEPTION());
+            root_container->appendChild(comment, ASSERT_NO_EXCEPTION());
+          }
+        }
+
       }
+
     }
   }
 }
@@ -139,8 +160,29 @@ void HTMLParser::parseProperty(Element* element, GumboElement* gumboElement) {
     auto* attribute = (GumboAttribute*)attributes->data[j];
 
     if (strcmp(attribute->name, "style") == 0) {
+      std::vector<std::string> arrStyles;
+      std::string::size_type prev_pos = 0, pos = 0;
+      std::string strStyles = attribute->value;
+
+      while ((pos = strStyles.find(';', pos)) != std::string::npos) {
+        arrStyles.push_back(strStyles.substr(prev_pos, pos - prev_pos));
+        prev_pos = ++pos;
+      }
+      arrStyles.push_back(strStyles.substr(prev_pos, pos - prev_pos));
+
       auto* style = element->style();
-      style->setCssText(AtomicString(ctx, attribute->value), ASSERT_NO_EXCEPTION());
+
+      for (auto& s : arrStyles) {
+        std::string::size_type position = s.find(':');
+        if (position != std::basic_string<char>::npos) {
+          std::string styleKey = s.substr(0, position);
+          trim(styleKey);
+          std::string styleValue = s.substr(position + 1, s.length());
+          trim(styleValue);
+          style->setProperty(AtomicString(ctx, styleKey), AtomicString(ctx, styleValue), ASSERT_NO_EXCEPTION());
+        }
+      }
+
     } else {
       std::string strName = attribute->name;
       std::string strValue = attribute->value;
