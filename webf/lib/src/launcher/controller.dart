@@ -715,7 +715,7 @@ class WebFModuleController with TimerMixin, ScheduleFrameMixin {
 }
 
 class WebFController {
-  static final SplayTreeMap<int, WebFController?> _controllerMap = SplayTreeMap();
+  static final Map<int, WebFController?> _controllerMap = {};
   static final Map<String, int> _nameIdMap = {};
 
   UriParser? uriParser;
@@ -728,7 +728,7 @@ class WebFController {
     return _controllerMap[contextId];
   }
 
-  static SplayTreeMap<int, WebFController?> getControllerMap() {
+  static Map<int, WebFController?> getControllerMap() {
     return _controllerMap;
   }
 

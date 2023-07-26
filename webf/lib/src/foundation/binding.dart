@@ -3,7 +3,6 @@
  * Copyright (C) 2022-present The WebF authors. All rights reserved.
  */
 import 'dart:ffi';
-import 'dart:collection';
 import 'package:collection/collection.dart';
 import 'package:ffi/ffi.dart';
 import 'package:flutter/foundation.dart';
@@ -109,8 +108,8 @@ abstract class BindingObject<T> extends Iterable<T> {
     return fromNativeValue(returnValue) == true;
   }
 
-  final SplayTreeMap<String, BindingObjectProperty> _properties = SplayTreeMap();
-  final SplayTreeMap<String, BindingObjectMethod> _methods = SplayTreeMap();
+  final Map<String, BindingObjectProperty> _properties = {};
+  final Map<String, BindingObjectMethod> _methods = {};
 
   @mustCallSuper
   void initializeProperties(Map<String, BindingObjectProperty> properties);

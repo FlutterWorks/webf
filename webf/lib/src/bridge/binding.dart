@@ -5,7 +5,6 @@
 
 // Bind the JavaScript side object,
 // provide interface such as property setter/getter, call a property as function.
-import 'dart:collection';
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
@@ -99,7 +98,7 @@ abstract class BindingBridge {
   static Pointer<NativeFunction<InvokeBindingsMethodsFromNative>> get nativeInvokeBindingMethod =>
       _invokeBindingMethodFromNative;
 
-  static final SplayTreeMap<int, BindingObject> _nativeObjects = SplayTreeMap();
+  static final Map<int, BindingObject> _nativeObjects = {};
 
   static T? getBindingObject<T>(Pointer pointer) {
     return _nativeObjects[pointer.address] as T?;
