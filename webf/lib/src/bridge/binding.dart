@@ -101,8 +101,11 @@ abstract class BindingBridge {
   static final Map<int, BindingObject> _nativeObjects = {};
 
   static T? getBindingObject<T>(Pointer pointer) {
-    return _nativeObjects[pointer.address] as T?;
+    T? result = _nativeObjects[pointer.address] as T?;
+    return result;
   }
+  static int totalHasBindingTime = 0;
+
   static bool hasBindingObject(Pointer pointer) {
     return _nativeObjects.containsKey(pointer.address);
   }

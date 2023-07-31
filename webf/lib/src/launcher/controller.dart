@@ -205,6 +205,9 @@ class WebFViewController implements WidgetsBindingObserver {
   late RenderViewportBox viewport;
   late Document document;
   late Window window;
+  bool _isDocumentInited = false;
+
+  bool get isDocumentInited => _isDocumentInited;
 
   void initDocument(Pointer<NativeBindingObject> pointer) {
     document = Document(
@@ -214,6 +217,7 @@ class WebFViewController implements WidgetsBindingObserver {
       gestureListener: gestureListener,
       initialCookies: initialCookies,
     );
+    _isDocumentInited = true;
 
     // Listeners need to be registered to window in order to dispatch events on demand.
     if (gestureListener != null) {
@@ -546,7 +550,7 @@ class WebFViewController implements WidgetsBindingObserver {
     if (target == null) return;
 
     if (target is Element) {
-      target.tryRecalculateStyle();
+      target.recalculateStyle();
     } else {
       debugPrint('Only element has style, try recalculateStyle from Node(#${Pointer.fromAddress(address)}).');
     }
