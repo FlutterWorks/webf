@@ -891,7 +891,7 @@ abstract class Element extends ContainerNode with ElementBase, ElementEventMixin
       }
     }
 
-    previousPseudoElement.style.flushPendingProperties();
+    previousPseudoElement.setNeedsStyleRecalc(StyleChangeType.localStyleChange);
 
     return previousPseudoElement;
   }
@@ -1005,9 +1005,6 @@ abstract class Element extends ContainerNode with ElementBase, ElementEventMixin
         // markBeforePseudoElementNeedsUpdate();
         // markAfterPseudoElementNeedsUpdate();
       }
-
-      // Flush pending style before child attached.
-      style.flushPendingProperties();
 
       didAttachRenderer();
     }
@@ -1919,7 +1916,7 @@ abstract class Element extends ContainerNode with ElementBase, ElementEventMixin
     inlineStyle.forEach((String property, _) {
       _removeInlineStyleProperty(property);
     });
-    style.flushPendingProperties();
+    setNeedsStyleRecalc(StyleChangeType.localStyleChange);
   }
 
   void _removeInlineStyleProperty(String property) {
