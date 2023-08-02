@@ -804,7 +804,7 @@ abstract class Element extends ContainerNode with ElementBase, ElementEventMixin
       }
 
       // Find the renderBox of its containing block.
-      RenderBox? containingBlockRenderBox = getContainingBlockRenderBox();
+      RenderLayoutBox? containingBlockRenderBox = getContainingBlockRenderBox();
       // Find the previous siblings to insert before renderBoxModel is detached.
       RenderBox? previousSibling = _renderBoxModel.getPreviousSibling();
 
@@ -938,7 +938,7 @@ abstract class Element extends ContainerNode with ElementBase, ElementEventMixin
   void addToContainingBlock() {
     RenderBoxModel _renderBoxModel = renderBoxModel!;
     // Find the renderBox of its containing block.
-    RenderBox? containingBlockRenderBox = getContainingBlockRenderBox();
+    RenderLayoutBox? containingBlockRenderBox = getContainingBlockRenderBox();
     // Find the previous siblings to insert before renderBoxModel is detached.
     RenderBox? previousSibling = _renderBoxModel.getPreviousSibling();
     // Detach renderBoxModel from its original parent.
@@ -1002,8 +1002,6 @@ abstract class Element extends ContainerNode with ElementBase, ElementEventMixin
         if (renderStyle.position != CSSPositionType.static) {
           _updateRenderBoxModelWithPosition(CSSPositionType.static);
         }
-        // markBeforePseudoElementNeedsUpdate();
-        // markAfterPseudoElementNeedsUpdate();
       }
 
       didAttachRenderer();
@@ -1243,15 +1241,15 @@ abstract class Element extends ContainerNode with ElementBase, ElementEventMixin
     _updateNameMap(null, oldName: getAttribute(_NAME));
   }
 
-  RenderBox? getContainingBlockRenderBox() {
-    RenderBox? containingBlockRenderBox;
+  RenderLayoutBox? getContainingBlockRenderBox() {
+    RenderLayoutBox? containingBlockRenderBox;
     CSSPositionType positionType = renderStyle.position;
 
     switch (positionType) {
       case CSSPositionType.relative:
       case CSSPositionType.static:
       case CSSPositionType.sticky:
-        containingBlockRenderBox = parentNode!.renderer;
+        containingBlockRenderBox = parentNode!.renderer as RenderLayoutBox;
         break;
       case CSSPositionType.absolute:
         // If the element has 'position: absolute', the containing block is established by the nearest ancestor with
@@ -1342,7 +1340,7 @@ abstract class Element extends ContainerNode with ElementBase, ElementEventMixin
       if (parentElement!.renderObjectManagerType == RenderObjectManagerType.WEBF_NODE) {
         RenderBoxModel _renderBoxModel = renderBoxModel!;
         // Find the renderBox of its containing block.
-        RenderBox? containingBlockRenderBox = getContainingBlockRenderBox();
+        RenderLayoutBox? containingBlockRenderBox = getContainingBlockRenderBox();
         // Find the previous siblings to insert before renderBoxModel is detached.
         RenderBox? preSibling = previousSibling?.renderer;
         // Original parent renderBox.
