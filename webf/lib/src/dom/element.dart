@@ -135,7 +135,7 @@ abstract class Element extends ContainerNode with ElementBase, ElementEventMixin
     final isNeedRecalculate = _checkRecalculateStyle([id, _id]);
     _updateIDMap(id, oldID: _id);
     _id = id;
-    // recalculateStyle(rebuildNested: isNeedRecalculate);
+    setNeedsStyleRecalc(isNeedRecalculate ? StyleChangeType.subtreeStyleChange : StyleChangeType.localStyleChange);
   }
 
   // Is element an replaced element.
@@ -185,7 +185,7 @@ abstract class Element extends ContainerNode with ElementBase, ElementEventMixin
     if (newClassLists.isNotEmpty) {
       _classList.addAll(newClassLists);
     }
-    // recalculateStyle(rebuildNested: isNeedRecalculate);
+    setNeedsStyleRecalc(isNeedRecalculate ? StyleChangeType.subtreeStyleChange : StyleChangeType.localStyleChange);
   }
 
   String get className => _classList.join(_ONE_SPACE);
@@ -855,7 +855,7 @@ abstract class Element extends ContainerNode with ElementBase, ElementEventMixin
     var pseudoValue = CSSPseudo.resolveContent(contentValue);
 
     bool shouldMutateBeforeElement =
-        previousPseudoElement == null || ((previousPseudoElement.firstChild as TextNode).data == pseudoValue);
+        previousPseudoElement == null || previousPseudoElement.firstChild == null || ((previousPseudoElement.firstChild as TextNode).data == pseudoValue);
 
     previousPseudoElement ??= PseudoElement(kind, this, BindingContext(contextId!, allocateNewBindingObject()));
     previousPseudoElement.ownerDocument = ownerDocument;
@@ -1002,8 +1002,8 @@ abstract class Element extends ContainerNode with ElementBase, ElementEventMixin
         if (renderStyle.position != CSSPositionType.static) {
           _updateRenderBoxModelWithPosition(CSSPositionType.static);
         }
-        markBeforePseudoElementNeedsUpdate();
-        markAfterPseudoElementNeedsUpdate();
+        // markBeforePseudoElementNeedsUpdate();
+        // markAfterPseudoElementNeedsUpdate();
       }
 
       // Flush pending style before child attached.
@@ -1292,8 +1292,7 @@ abstract class Element extends ContainerNode with ElementBase, ElementEventMixin
     if (propertyHandler != null && propertyHandler.setter != null) {
       propertyHandler.setter!(value);
     }
-    // final isNeedRecalculate = _checkRecalculateStyle([qualifiedName], ownerDocument.ruleSet.attributeRules);
-    // _needRecalculateStyle = _needRecalculateStyle || isNeedRecalculate;
+    setNeedsStyleRecalc(StyleChangeType.localStyleChange);
   }
 
   void internalSetAttribute(String qualifiedName, String value) {
@@ -1302,10 +1301,6 @@ abstract class Element extends ContainerNode with ElementBase, ElementEventMixin
       className = value;
       return;
     }
-    // final isNeedRecalculate = _checkRecalculateStyle([qualifiedName], ownerDocument.ruleSet.attributeRules);
-    // recalculateStyle(rebuildNested: isNeedRecalculate);
-    // final isNeedRecalculate = _checkRecalculateStyle([qualifiedName]);
-    // recalculateStyle(rebuildNested: isNeedRecalculate);
   }
 
   @mustCallSuper
@@ -1897,7 +1892,7 @@ abstract class Element extends ContainerNode with ElementBase, ElementEventMixin
     // But it's necessary for SVG.
   }
 
-  void recalculateStyle({bool rebuildNested = false, bool forceRecalculate = false}) {
+  bool recalculateStyle({bool rebuildNested = false, bool forceRecalculate = false}) {
     if (renderBoxModel != null || forceRecalculate || renderStyle.display == CSSDisplay.none) {
       // Diff style.
       CSSStyleDeclaration newStyle = CSSStyleDeclaration();
@@ -1908,14 +1903,16 @@ abstract class Element extends ContainerNode with ElementBase, ElementEventMixin
         style.flushPendingProperties();
       }
 
-      if (rebuildNested || hasInheritedPendingProperty) {
+      if (rebuildNested || hasInheritedPendingProperty || styleChangeType == StyleChangeType.subtreeStyleChange) {
         // Update children style.
         children.forEach((Element child) {
           child.recalculateStyle(rebuildNested: rebuildNested);
         });
       }
       clearStyleChangeType();
+      return true;
     }
+    return false;
   }
 
   void _removeInlineStyle() {
