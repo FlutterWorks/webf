@@ -55,9 +55,7 @@ class _WebFElement extends MultiChildRenderObjectElement {
       }
 
       htmlElement.ensureChildAttached();
-      htmlElement.applyStyle(htmlElement.style);
-      // Flush pending style before child attached.
-      htmlElement.style.flushPendingProperties();
+      htmlElement.setNeedsStyleRecalc(StyleChangeType.localStyleChange);
     }
   }
 
