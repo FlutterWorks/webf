@@ -315,9 +315,7 @@ class RenderTextBox extends RenderBox with RenderObjectWithChildMixin<RenderBox>
 
   // '   a b c' => 'a b c'
   static String _trimLeftWhitespace(String string) {
-    String result = string.replaceAllMapped(_trimLeftWhitespaceReg, (Match m) =>
-    '${m[1]}'
-    );
+    String result = string.replaceAllMapped(_trimLeftWhitespaceReg, (Match m) => '${m[1]}');
     if (result.startsWith(' ')) {
       return '';
     }
