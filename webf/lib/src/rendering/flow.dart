@@ -1037,9 +1037,6 @@ class RenderFlowLayout extends RenderLayoutBox {
     if (child.isScrollingContentBox) {
       return 0;
     }
-    if (child.size.isEmpty) {
-      return 0;
-    }
     return child.renderStyle.collapsedMarginTop;
   }
 
