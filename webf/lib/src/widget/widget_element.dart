@@ -85,6 +85,10 @@ abstract class WidgetElement extends dom.Element {
   void willAttachRenderer() {
     super.willAttachRenderer();
     if (renderStyle.display != CSSDisplay.none) {
+      if (attachedAdapter != null) {
+        _detachWidget();
+      }
+
       attachedAdapter = WebFWidgetElementToWidgetAdapter(child: widget, container: renderBoxModel!, widgetElement: this);
     }
   }
