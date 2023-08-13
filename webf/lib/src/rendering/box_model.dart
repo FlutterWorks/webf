@@ -795,6 +795,10 @@ class RenderBoxModel extends RenderBox
     // Copy event hook
       ..getEventTarget = getEventTarget
 
+    // Intersection listeners
+      ..intersectionListeners = intersectionListeners
+      ..onIntersectionChange = onIntersectionChange
+
     // Copy renderPositionHolder
       ..renderPositionPlaceholder = renderPositionPlaceholder
 
