@@ -532,18 +532,6 @@ class WebFViewController implements WidgetsBindingObserver {
     }
   }
 
-  void flushPendingStyleProperties(int address) {
-    if (!BindingBridge.hasBindingObject(Pointer.fromAddress(address))) return;
-    Node? target = BindingBridge.getBindingObject<Node>(Pointer.fromAddress(address));
-    if (target == null) return;
-
-    if (target is Element) {
-      target.style.flushPendingProperties();
-    } else {
-      debugPrint('Only element has style, try flushPendingStyleProperties from Node(#${Pointer.fromAddress(address)}).');
-    }
-  }
-
   void recalculateStyle(int address) {
     if (!BindingBridge.hasBindingObject(Pointer.fromAddress(address))) return;
     Node? target = BindingBridge.getBindingObject<Node>(Pointer.fromAddress(address));
