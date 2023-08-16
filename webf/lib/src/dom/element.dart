@@ -819,7 +819,7 @@ abstract class Element extends ContainerNode with ElementBase, ElementEventMixin
       // need to create repaintBoundary.
       updateRenderBoxModel();
       // Original parent renderBox.
-      RenderBox parentRenderBox = parentNode!.renderer!;
+      RenderBox? parentRenderBox = parentNode!.renderer;
       // Attach renderBoxModel to its containing block.
       renderBoxModel!
           .attachToContainingBlock(containingBlockRenderBox, parent: parentRenderBox, after: previousSibling);
@@ -1330,7 +1330,9 @@ abstract class Element extends ContainerNode with ElementBase, ElementEventMixin
       case POSITION:
         CSSPositionType oldPosition = renderStyle.position;
         renderStyle.position = value;
-        _updateRenderBoxModelWithPosition(oldPosition);
+        if (isRendererAttached) {
+          _updateRenderBoxModelWithPosition(oldPosition);
+        }
         break;
       case TOP:
         renderStyle.top = value;
@@ -1799,7 +1801,7 @@ abstract class Element extends ContainerNode with ElementBase, ElementEventMixin
       if (prev is Element &&
           (prev.renderStyle.position == CSSPositionType.absolute ||
               prev.renderStyle.position == CSSPositionType.fixed)) {
-        RenderPositionPlaceholder? positionHolder = (prev.renderer as RenderLayoutBox).renderPositionPlaceholder;
+        RenderPositionPlaceholder? positionHolder = (prev.renderer as RenderBoxModel).renderPositionPlaceholder;
         return positionHolder;
       }
 
