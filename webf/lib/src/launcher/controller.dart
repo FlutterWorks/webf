@@ -6,6 +6,7 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:ffi';
 import 'dart:io';
 import 'dart:isolate';
@@ -1076,6 +1077,12 @@ class WebFController {
       return;
     }
 
+    if (!kReleaseMode) {
+      Timeline.startSync(
+        'Evaluate Scripts'
+      );
+    }
+
     assert(!_view._disposed, 'WebF have already disposed');
     if (_entrypoint != null) {
       WebFBundle entrypoint = _entrypoint!;
@@ -1116,6 +1123,10 @@ class WebFController {
         checkCompleted();
       });
       SchedulerBinding.instance.scheduleFrame();
+    }
+
+    if (!kReleaseMode) {
+      Timeline.finishSync();
     }
   }
 

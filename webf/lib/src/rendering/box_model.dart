@@ -1191,8 +1191,10 @@ class RenderBoxModel extends RenderBox
   void paint(PaintingContext context, Offset offset) {
     if (!kReleaseMode) {
       Timeline.startSync(
-        'RenderBoxModel paint',
-        arguments: {'ownerElement': renderStyle.target.toString()},
+        '$this paint',
+        arguments: {
+          'ownerElement': renderStyle.target.toString()
+        },
       );
     }
 
