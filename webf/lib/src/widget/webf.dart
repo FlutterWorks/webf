@@ -10,6 +10,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:webf/webf.dart';
 import 'package:webf/gesture.dart';
 import 'package:webf/css.dart';
@@ -149,7 +150,7 @@ class WebFState extends State<WebF> with RouteAware {
 
   final Set<WebFWidgetElementToWidgetAdapter> customElementWidgets = {};
   void onCustomElementWidgetAdd(WebFWidgetElementToWidgetAdapter adapter) {
-    Future.microtask(() {
+    SchedulerBinding.instance.addPostFrameCallback((_) {
       if (!_disposed) {
         setState(() {
           customElementWidgets.add(adapter);
@@ -159,7 +160,7 @@ class WebFState extends State<WebF> with RouteAware {
   }
 
   void onCustomElementWidgetRemove(WebFWidgetElementToWidgetAdapter adapter) {
-    Future.microtask(() {
+    SchedulerBinding.instance.addPostFrameCallback((_) {
       if (!_disposed) {
         setState(() {
           customElementWidgets.remove(adapter);
