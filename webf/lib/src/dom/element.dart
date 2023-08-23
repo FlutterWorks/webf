@@ -184,7 +184,7 @@ abstract class Element extends ContainerNode with ElementBase, ElementEventMixin
     if (newClassLists.equals(classList)) return;
     final checkKeys = (_classList + newClassLists).where((key) => !_classList.contains(key) || !classList.contains(key));
     final isNeedRecalculate = _checkRecalculateStyle(List.from(checkKeys));
-    __classList.clear();
+    _classList.clear();
     if (newClassLists.isNotEmpty) {
       _classList.addAll(newClassLists);
     }
@@ -1890,8 +1890,8 @@ abstract class Element extends ContainerNode with ElementBase, ElementEventMixin
   // https://drafts.csswg.org/cssom-view/#dom-element-getboundingclientrect
   BoundingClientRect get boundingClientRect {
     BoundingClientRect boundingClientRect = BoundingClientRect.zero;
+    ownerDocument.updateStyleIfNeeded();
     if (isRendererAttached) {
-      ownerDocument.updateStyleIfNeeded();
       flushLayout();
       RenderBoxModel sizedBox = renderBoxModel!;
       // Force flush layout.
