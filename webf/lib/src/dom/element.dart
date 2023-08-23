@@ -1029,7 +1029,7 @@ abstract class Element extends ContainerNode with ElementBase, ElementEventMixin
 
   @override
   void ensureChildAttached() {
-    if (isRendererAttached) {
+    if (isRendererAttached || isRendererAttachedToParent(parentElement?.renderer)) {
       final box = renderBoxModel;
       if (box == null) return;
       for (Node child in childNodes) {
@@ -1044,7 +1044,7 @@ abstract class Element extends ContainerNode with ElementBase, ElementEventMixin
         } else if (box is RenderSVGContainer) {
           after = box.lastChild;
         }
-        if (!child.isRendererAttached) {
+        if (!child.isRendererAttached || !child.isRendererAttachedToParent(renderer)) {
           child.attachTo(this, after: after);
           child.ensureChildAttached();
         }
@@ -1824,7 +1824,7 @@ abstract class Element extends ContainerNode with ElementBase, ElementEventMixin
 
     if (this is PseudoElement) {
       // Create and attach renderObject into the renderObject tree when style was ready.
-      if (!isRendererAttached) {
+      if (!isRendererAttached && !isRendererAttachedToParent(parentElement!.renderer)) {
         attachTo(parentElement!, after: previousSiblingRenderer);
         ensureChildAttached();
       }
@@ -1840,7 +1840,7 @@ abstract class Element extends ContainerNode with ElementBase, ElementEventMixin
         hasInheritedPendingProperty = style.hasInheritedPendingProperty;
       }
       // Create and attach renderObject into the renderObject tree when style was ready.
-      if (!isRendererAttached) {
+      if (!isRendererAttached && !isRendererAttachedToParent(parentElement!.renderer)) {
         attachTo(parentElement!, after: previousSiblingRenderer);
       }
       // Apply all pending styles into the RenderStyle in renderObject.
@@ -1849,7 +1849,7 @@ abstract class Element extends ContainerNode with ElementBase, ElementEventMixin
       // Calculate the sub-node's styles when necessary.
       if (rebuildNested || hasInheritedPendingProperty || styleChangeType == StyleChangeType.subtreeStyleChange) {
         childNodes.forEach((node) {
-          if (node is CharacterData && !node.isRendererAttached) {
+          if (node is CharacterData && !node.isRendererAttached && !node.isRendererAttachedToParent(renderer)) {
             node.attachTo(this, after: node.previousSibling?.renderer);
           } else if (node is Element) {
             node.recalculateStyle(rebuildNested: rebuildNested);
