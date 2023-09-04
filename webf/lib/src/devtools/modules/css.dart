@@ -52,9 +52,9 @@ class InspectCSSModule extends UIInspectorModule {
 
   void handleGetComputedStyleForNode(int? id, Map<String, dynamic> params) {
     int nodeId = params['nodeId'];
-    Element? element = BindingBridge.getBindingObject<Element>(Pointer.fromAddress(nodeId));
+    BindingObject? element = BindingBridge.getBindingObject<BindingObject>(Pointer.fromAddress(nodeId));
 
-    if (element != null) {
+    if (element is Element) {
       ComputedStyle computedStyle = ComputedStyle(
         computedStyle: buildComputedStyle(element),
       );
@@ -66,9 +66,9 @@ class InspectCSSModule extends UIInspectorModule {
   // implicitly, using DOM attributes) for a DOM node identified by nodeId.
   void handleGetInlineStylesForNode(int? id, Map<String, dynamic> params) {
     int nodeId = params['nodeId'];
-    Element? element = BindingBridge.getBindingObject<Element>(Pointer.fromAddress(nodeId));
+    BindingObject? element = BindingBridge.getBindingObject<BindingObject>(Pointer.fromAddress(nodeId));
 
-    if (element != null) {
+    if (element is Element) {
       InlinedStyle inlinedStyle = InlinedStyle(
         inlineStyle: buildInlineStyle(element),
         attributesStyle: buildAttributesStyle(element.attributes),
@@ -88,8 +88,8 @@ class InspectCSSModule extends UIInspectorModule {
       int nodeId = edit['styleSheetId'];
       String text = edit['text'] ?? '';
       List<String> texts = text.split(';');
-      Element? element = BindingBridge.getBindingObject<Element>(Pointer.fromAddress(nodeId));
-      if (element != null) {
+      BindingObject? element = BindingBridge.getBindingObject<BindingObject>(Pointer.fromAddress(nodeId));
+      if (element is Element) {
         for (String kv in texts) {
           kv = kv.trim();
           List<String> _kv = kv.split(':');
