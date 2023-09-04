@@ -81,7 +81,7 @@ class RenderSVGRoot extends RenderSVGContainer {
     width = width.isInfinite ? DEFAULT_VIEW_BOX_WIDTH : width;
     height = height.isInfinite ? DEFAULT_VIEW_BOX_HEIGHT : height;
 
-    size = Size(width, height);
+    size = constraints.constrain(Size(width, height));
 
     if (_viewBox == null) {
       // When viewBox is not valid, should use width/height

@@ -15,6 +15,7 @@ import 'package:webf/bridge.dart';
 import 'package:webf/foundation.dart';
 import 'package:webf/painting.dart';
 import 'package:webf/rendering.dart';
+import 'package:webf/src/html/image/image_loader.dart';
 
 const String IMAGE = 'IMG';
 const String NATURAL_WIDTH = 'naturalWidth';
@@ -42,6 +43,8 @@ class ImageElement extends Element {
   ImageRequest? _currentRequest;
   ImageRequest? _pendingRequest;
 
+  late final imageLoader;
+
   // Current image source.
   Uri? _resolvedUri;
 
@@ -54,7 +57,8 @@ class ImageElement extends Element {
   bool _isListeningStream = false;
 
   // Useful for img to operate RenderPlaced is in lazy rendering.
-  bool get _isInLazyLoading => (renderBoxModel as RenderReplaced?)?.isInLazyRendering == true;
+  bool get _isInLazyLoading =>
+      (renderBoxModel as RenderReplaced?)?.isInLazyRendering == true;
 
   set _isInLazyRendering(bool value) {
     (renderBoxModel as RenderReplaced?)?.isInLazyRendering = value;
@@ -71,9 +75,12 @@ class ImageElement extends Element {
   bool get complete {
     // @TODO: Implement the srcset.
     if (src.isEmpty) return true;
-    if (_currentRequest != null && _currentRequest!.available && _pendingRequest == null) return true;
-    if (_currentRequest != null && _currentRequest!.state == _ImageRequestState.broken && _pendingRequest == null)
-      return true;
+    if (_currentRequest != null &&
+        _currentRequest!.available &&
+        _pendingRequest == null) return true;
+    if (_currentRequest != null &&
+        _currentRequest!.state == _ImageRequestState.broken &&
+        _pendingRequest == null) return true;
     return true;
   }
 
@@ -96,6 +103,7 @@ class ImageElement extends Element {
     // handler of HTMLImageElement.
     BindingBridge.listenEvent(this, 'load');
     BindingBridge.listenEvent(this, 'error');
+    imageLoader = ImageLoader(this);
   }
 
   @override
@@ -107,15 +115,22 @@ class ImageElement extends Element {
   @override
   void initializeProperties(Map<String, BindingObjectProperty> properties) {
     super.initializeProperties(properties);
-    properties['src'] = BindingObjectProperty(getter: () => src, setter: (value) => src = castToType<String>(value));
-    properties['loading'] =
-        BindingObjectProperty(getter: () => loading, setter: (value) => loading = castToType<String>(value));
-    properties['width'] = BindingObjectProperty(getter: () => width, setter: (value) => width = value);
-    properties['height'] = BindingObjectProperty(getter: () => height, setter: (value) => height = value);
-    properties['scaling'] =
-        BindingObjectProperty(getter: () => scaling, setter: (value) => scaling = castToType<String>(value));
-    properties['naturalWidth'] = BindingObjectProperty(getter: () => naturalWidth);
-    properties['naturalHeight'] = BindingObjectProperty(getter: () => naturalHeight);
+    properties['src'] = BindingObjectProperty(
+        getter: () => src, setter: (value) => src = castToType<String>(value));
+    properties['loading'] = BindingObjectProperty(
+        getter: () => loading,
+        setter: (value) => loading = castToType<String>(value));
+    properties['width'] = BindingObjectProperty(
+        getter: () => width, setter: (value) => width = value);
+    properties['height'] = BindingObjectProperty(
+        getter: () => height, setter: (value) => height = value);
+    properties['scaling'] = BindingObjectProperty(
+        getter: () => scaling,
+        setter: (value) => scaling = castToType<String>(value));
+    properties['naturalWidth'] =
+        BindingObjectProperty(getter: () => naturalWidth);
+    properties['naturalHeight'] =
+        BindingObjectProperty(getter: () => naturalHeight);
     properties['complete'] = BindingObjectProperty(getter: () => complete);
   }
 
@@ -123,21 +138,26 @@ class ImageElement extends Element {
   void initializeAttributes(Map<String, ElementAttributeProperty> attributes) {
     super.initializeAttributes(attributes);
 
-    attributes['src'] = ElementAttributeProperty(setter: (value) => src = attributeToProperty<String>(value));
-    attributes['loading'] = ElementAttributeProperty(setter: (value) => loading = attributeToProperty<String>(value));
+    attributes['src'] = ElementAttributeProperty(
+        setter: (value) => src = attributeToProperty<String>(value));
+    attributes['loading'] = ElementAttributeProperty(
+        setter: (value) => loading = attributeToProperty<String>(value));
     attributes['width'] = ElementAttributeProperty(setter: (value) {
-      CSSLengthValue input = CSSLength.parseLength(attributeToProperty<String>(value), renderStyle);
+      CSSLengthValue input = CSSLength.parseLength(
+          attributeToProperty<String>(value), renderStyle);
       if (input.value != null) {
         width = input.value!.toInt();
       }
     });
     attributes['height'] = ElementAttributeProperty(setter: (value) {
-      CSSLengthValue input = CSSLength.parseLength(attributeToProperty<String>(value), renderStyle);
+      CSSLengthValue input = CSSLength.parseLength(
+          attributeToProperty<String>(value), renderStyle);
       if (input.value != null) {
         height = input.value!.toInt();
       }
     });
-    attributes['scaling'] = ElementAttributeProperty(setter: (value) => scaling = attributeToProperty<String>(value));
+    attributes['scaling'] = ElementAttributeProperty(
+        setter: (value) => scaling = attributeToProperty<String>(value));
   }
 
   @override
@@ -191,8 +211,8 @@ class ImageElement extends Element {
 
   ImageStreamListener? _imageStreamListener;
 
-  ImageStreamListener get _listener =>
-      _imageStreamListener ??= ImageStreamListener(_handleImageFrame, onError: _onImageError);
+  ImageStreamListener get _listener => _imageStreamListener ??=
+      BotFixImageStreamListener(_handleImageFrame, onError: _onImageError);
 
   void _listenToStream() {
     if (_isListeningStream) return;
@@ -257,15 +277,21 @@ class ImageElement extends Element {
 
   int get width {
     // Width calc priority: style > attr > intrinsic.
-    final double borderBoxWidth = _styleWidth ?? _attrWidth ?? renderStyle.getWidthByAspectRatio();
+    final double borderBoxWidth =
+        _styleWidth ?? _attrWidth ?? renderStyle.getWidthByAspectRatio();
     return borderBoxWidth.isFinite ? borderBoxWidth.round() : 0;
   }
 
   int get height {
     // Height calc priority: style > attr > intrinsic.
-    final double borderBoxHeight = _styleHeight ?? _attrHeight ?? renderStyle.getHeightByAspectRatio();
+    final double borderBoxHeight =
+        _styleHeight ?? _attrHeight ?? renderStyle.getHeightByAspectRatio();
     return borderBoxHeight.isFinite ? borderBoxHeight.round() : 0;
   }
+
+  bool get _isSVGMode => _resolvedUri?.path.endsWith('.svg') ?? false;
+
+  RenderBox? _svgRenderObject = null;
 
   // Read the original image width of loaded image.
   // The getter must be called after image had loaded, otherwise will return 0.
@@ -292,6 +318,11 @@ class ImageElement extends Element {
   }
 
   void _constructImage() {
+    print('construct image');
+    if (_isSVGMode && _svgRenderObject != null) {
+      addChild(_svgRenderObject!);
+      return;
+    }
     RenderImage image = _renderImage = _createRenderImageBox();
     addChild(image);
   }
@@ -355,7 +386,9 @@ class ImageElement extends Element {
     super.removeAttribute(key);
     if (key == 'src') {
       _stopListeningStream(keepStreamAlive: true);
-    } else if (key == 'loading' && _isInLazyLoading && _currentImageProvider == null) {
+    } else if (key == 'loading' &&
+        _isInLazyLoading &&
+        _currentImageProvider == null) {
       _removeIntersectionChangeListener();
       _stopListeningStream(keepStreamAlive: true);
     }
@@ -371,7 +404,9 @@ class ImageElement extends Element {
   void _stopListeningStream({bool keepStreamAlive = false}) {
     if (!_isListeningStream) return;
 
-    if (keepStreamAlive && _completerHandle == null && _cachedImageStream?.completer != null) {
+    if (keepStreamAlive &&
+        _completerHandle == null &&
+        _cachedImageStream?.completer != null) {
       _completerHandle = _cachedImageStream!.completer!.keepAlive();
     }
 
@@ -407,6 +442,18 @@ class ImageElement extends Element {
 
     // Make sure all style and properties are ready before decode begins.
     SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+      // TODO: should clear something when toggle svg mode.
+      if (_isSVGMode) {
+        final builder =
+            SVGRenderBoxBuilder(_obtainImage(_resolvedUri!), target: this);
+        builder.decode().then((renderObject) {
+          print('setRenderObject $renderObject');
+          _svgRenderObject = renderObject;
+          completer.complete();
+          _onImageLoad(1024, 1024);
+        });
+        return;
+      }
       ImageProvider? provider = _currentImageProvider;
       if (updateImageProvider || provider == null) {
         // Image should be resized based on different ratio according to object-fit value.
@@ -416,6 +463,7 @@ class ImageElement extends Element {
         ownerDocument.incrementLoadEventDelayCount();
 
         provider = _currentImageProvider = BoxFitImage(
+          this,
           boxFit: objectFit,
           url: _resolvedUri!,
           loadImage: _obtainImage,
@@ -425,12 +473,14 @@ class ImageElement extends Element {
 
       FlutterView ownerFlutterView = ownerDocument.controller.ownerFlutterView;
       // Try to make sure that this image can be encoded into a smaller size.
-      int? cachedWidth = renderStyle.width.value != null && width > 0 && width.isFinite
-          ? (width * ownerFlutterView.devicePixelRatio).toInt()
-          : null;
-      int? cachedHeight = renderStyle.height.value != null && height > 0 && height.isFinite
-          ? (height * ownerFlutterView.devicePixelRatio).toInt()
-          : null;
+      int? cachedWidth =
+          renderStyle.width.value != null && width > 0 && width.isFinite
+              ? (width * ownerFlutterView.devicePixelRatio).toInt()
+              : null;
+      int? cachedHeight =
+          renderStyle.height.value != null && height > 0 && height.isFinite
+              ? (height * ownerFlutterView.devicePixelRatio).toInt()
+              : null;
 
       if (cachedWidth != null && cachedHeight != null) {
         // If a image with the same URL has a fixed size, attempt to remove the previous unsized imageProvider from imageCache.
@@ -438,12 +488,15 @@ class ImageElement extends Element {
           url: _resolvedUri!,
           configuration: ImageConfiguration.empty,
         );
-        PaintingBinding.instance.imageCache.evict(previousUnSizedKey, includeLive: true);
+        PaintingBinding.instance.imageCache
+            .evict(previousUnSizedKey, includeLive: true);
       }
 
-      ImageConfiguration imageConfiguration = _shouldScaling && cachedWidth != null && cachedHeight != null
-          ? ImageConfiguration(size: Size(cachedWidth.toDouble(), cachedHeight.toDouble()))
-          : ImageConfiguration.empty;
+      ImageConfiguration imageConfiguration =
+          _shouldScaling && cachedWidth != null && cachedHeight != null
+              ? ImageConfiguration(
+                  size: Size(cachedWidth.toDouble(), cachedHeight.toDouble()))
+              : ImageConfiguration.empty;
       _updateSourceStream(provider.resolve(imageConfiguration));
 
       _isImageEncoding = false;
@@ -521,7 +574,6 @@ class ImageElement extends Element {
   set src(String value) {
     if (src != value && value.isNotEmpty) {
       _loaded = false;
-      internalSetAttribute('src', value);
       _resolveResourceUri(value);
       if (_resolvedUri != null) {
         _updateImageData();
@@ -538,7 +590,8 @@ class ImageElement extends Element {
       // If the _completerHandle are not null, there must be a imageProvider available in the imageCache.
       if (_shouldLazyLoading && _completerHandle == null) {
         RenderReplaced? renderReplaced = renderBoxModel as RenderReplaced?;
-        FlutterView ownerFlutterView = ownerDocument.controller.ownerFlutterView;
+        FlutterView ownerFlutterView =
+            ownerDocument.controller.ownerFlutterView;
         renderReplaced
           ?..isInLazyRendering = true
           // Expand the intersecting area to preload images before they become visible to users.
@@ -559,12 +612,12 @@ class ImageElement extends Element {
 
   // To load the resource, and dispatch load event.
   // https://html.spec.whatwg.org/multipage/images.html#when-to-obtain-images
-  Future<Uint8List> _obtainImage(Uri url) async {
+  Future<ImageLoadResponse> _obtainImage(Uri url) async {
     ImageRequest request = _currentRequest = ImageRequest.fromUri(url);
     // Increment count when request.
     ownerDocument.incrementRequestCount();
 
-    Uint8List data = await request._obtainImage(contextId);
+    final data = await request._obtainImage(contextId);
 
     // Decrement count when response.
     ownerDocument.decrementRequestCount();
@@ -603,14 +656,16 @@ class ImageElement extends Element {
   void _resolveResourceUri(String src) {
     String base = ownerDocument.controller.url;
     try {
-      _resolvedUri = ownerDocument.controller.uriParser!.resolve(Uri.parse(base), Uri.parse(src));
+      _resolvedUri = ownerDocument.controller.uriParser!
+          .resolve(Uri.parse(base), Uri.parse(src));
     } catch (_) {
       // Ignoring the failure of resolving, but to remove the resolved hyperlink.
       _resolvedUri = null;
     }
   }
 
-  void _stylePropertyChanged(String property, String? original, String present, {String? baseHref}) {
+  void _stylePropertyChanged(String property, String? original, String present,
+      {String? baseHref}) {
     if (property == WIDTH || property == HEIGHT) {
       // Resize image
       if (_shouldScaling && _resolvedUri != null) {
@@ -664,9 +719,10 @@ class ImageRequest {
   /// When an image request's state is either partially available or completely available,
   /// the image request is said to be available.
   bool get available =>
-      state == _ImageRequestState.completelyAvailable || state == _ImageRequestState.partiallyAvailable;
+      state == _ImageRequestState.completelyAvailable ||
+      state == _ImageRequestState.partiallyAvailable;
 
-  Future<Uint8List> _obtainImage(int? contextId) async {
+  Future<ImageLoadResponse> _obtainImage(int? contextId) async {
     final WebFBundle bundle = WebFBundle.fromUrl(currentUri.toString());
 
     await bundle.resolve(contextId);
@@ -680,6 +736,8 @@ class ImageRequest {
     // Free the bundle memory.
     bundle.dispose();
 
-    return data;
+    return ImageLoadResponse(data,
+        // TODO: use ContentType
+        mime: bundle.contentType.toString());
   }
 }

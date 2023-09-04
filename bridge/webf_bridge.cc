@@ -8,6 +8,7 @@
 #include <thread>
 
 #include "bindings/qjs/native_string_utils.h"
+#include "core/html/parser/html_parser.h"
 #include "core/dart_isolate_context.h"
 #include "core/page.h"
 #include "foundation/logging.h"
@@ -81,6 +82,15 @@ void parseHTML(void* page_, const char* code, int32_t length) {
   auto page = reinterpret_cast<webf::WebFPage*>(page_);
   assert(std::this_thread::get_id() == page->currentThread());
   page->parseHTML(code, length);
+}
+
+void* parseSVGResult(const char* code, int32_t length) {
+  auto* result = webf::HTMLParser::parseSVGResult(code, length);
+  return result;
+}
+
+void freeSVGResult(void* svgTree) {
+  webf::HTMLParser::freeSVGResult(reinterpret_cast<GumboOutput*>(svgTree));
 }
 
 NativeValue* invokeModuleEvent(void* page_,
