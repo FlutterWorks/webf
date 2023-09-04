@@ -22,7 +22,6 @@ typedef struct NativeValue NativeValue;
 typedef struct NativeScreen NativeScreen;
 typedef struct NativeByteCode NativeByteCode;
 
-
 struct WebFInfo {
   const char* app_name{nullptr};
   const char* app_version{nullptr};

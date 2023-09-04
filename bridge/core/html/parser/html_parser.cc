@@ -55,9 +55,9 @@ GumboOutput* parse(const std::string& html, bool isHTMLFragment = false) {
 
 void transToSVG(GumboNode* node) {
   if (node->type == GUMBO_NODE_ELEMENT) {
-    auto element = &node -> v.element;
-    gumbo_tag_from_original_text(&element -> original_tag);
-    const GumboVector* children = &element -> children;
+    auto element = &node->v.element;
+    gumbo_tag_from_original_text(&element->original_tag);
+    const GumboVector* children = &element->children;
     for (int i = 0; i < children->length; ++i) {
       auto* child = (GumboNode*)children->data[i];
       transToSVG(child);
@@ -74,15 +74,15 @@ GumboOutput* parseSVG(const char* buffer, size_t length) {
 }
 
 GumboNode* findSVGRoot(GumboNode* node) {
-  if (node -> type == GUMBO_NODE_ELEMENT) {
-    auto element = &node -> v.element;
-    if (element -> tag == GUMBO_TAG_SVG && element -> tag_namespace == GUMBO_NAMESPACE_SVG) {
+  if (node->type == GUMBO_NODE_ELEMENT) {
+    auto element = &node->v.element;
+    if (element->tag == GUMBO_TAG_SVG && element->tag_namespace == GUMBO_NAMESPACE_SVG) {
       return node;
     }
-    auto children = &element -> children;
+    auto children = &element->children;
     GumboNode* ret = nullptr;
-    for (int i = 0; i < children -> length; i++) {
-      ret = findSVGRoot((GumboNode*)children -> data[i]);
+    for (int i = 0; i < children->length; i++) {
+      ret = findSVGRoot((GumboNode*)children->data[i]);
       if (ret != nullptr) {
         return ret;
       }
@@ -171,8 +171,8 @@ bool HTMLParser::parseHTMLFragment(const char* code, size_t codeLength, Node* ro
 
 GumboOutput* HTMLParser::parseSVGResult(const char* code, size_t codeLength) {
   std::string svg = std::string(code, codeLength);
-  auto result =  parseSVG(code, codeLength);
-  auto root = findSVGRoot(result -> root);
+  auto result = parseSVG(code, codeLength);
+  auto root = findSVGRoot(result->root);
   if (root != nullptr) {
     transToSVG(root);
   }
