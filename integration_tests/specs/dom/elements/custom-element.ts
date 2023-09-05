@@ -411,12 +411,26 @@ describe('custom widget element', () => {
     await snapshot();
   });
 
+
   it('should ignore empty textNodes', async () => {
     const container = document.createElement('flutter-container');
     container.appendChild(document.createTextNode(''));
     container.appendChild(document.createTextNode('A'));
     container.appendChild(document.createTextNode(''));
     document.body.appendChild(container);
+
+  it('should works with swiper component', async () => {
+    const swiper = document.createElement('flutter-swiper');
+    for(let i = 0; i < 10; i ++) {
+      const container = document.createElement('div');
+      container.textContent = i.toString();
+      swiper.appendChild(container);
+    }
+    document.body.appendChild(swiper);
+    await snapshot();
+    // @ts-ignore
+    swiper.move(1);
+    await sleep(1);
     await snapshot();
   });
 });
