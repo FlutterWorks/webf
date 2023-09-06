@@ -8,6 +8,7 @@ import 'dart:ui' as ui;
 import 'package:webf/bridge.dart';
 import 'package:webf/devtools.dart';
 import 'package:webf/dom.dart';
+import 'package:webf/foundation.dart';
 import 'package:webf/rendering.dart';
 import 'package:flutter/rendering.dart';
 import 'package:webf/launcher.dart';
@@ -49,7 +50,7 @@ class InspectDOMModule extends UIInspectorModule {
     rootRenderObject.hitTest(result, position: Offset(x.toDouble(), y.toDouble()));
     if (result.path.first.target is RenderBoxModel) {
       RenderBoxModel lastHitRenderBoxModel = result.path.first.target as RenderBoxModel;
-      int? targetId = lastHitRenderBoxModel.renderStyle.target.pointer!.address;
+      int? targetId = lastHitRenderBoxModel.renderStyle.target.forDevtoolsNodeId
       sendToFrontend(
           id,
           JSONEncodableMap({
@@ -69,7 +70,7 @@ class InspectDOMModule extends UIInspectorModule {
   void onSetInspectedNode(int? id, Map<String, dynamic> params) {
     int? nodeId = params['nodeId'];
     if (nodeId == null) return;
-    Node? node = BindingBridge.getBindingObject<Node>(Pointer.fromAddress(nodeId));
+    Node? node = BindingBridge.getBindingObject<Node>(Pointer.fromAddress(BindingObject.getTargetIdByNodeId(nodeId)));
     if (node != null) {
       inspectedNode = node;
     }
@@ -87,7 +88,7 @@ class InspectDOMModule extends UIInspectorModule {
   void onGetBoxModel(int? id, Map<String, dynamic> params) {
     int? nodeId = params['nodeId'];
     if (nodeId == null) return;
-    Node? node = BindingBridge.getBindingObject<Node>(Pointer.fromAddress(nodeId));
+    Node? node = BindingBridge.getBindingObject<Node>(Pointer.fromAddress(BindingObject.getTargetIdByNodeId(nodeId)));
 
     Element? element = null;
     if (node is Element) element = node;
@@ -195,12 +196,12 @@ class InspectorNode extends JSONEncodable {
   /// Node identifier that is passed into the rest of the DOM messages as the nodeId.
   /// Backend will only push node with given id once. It is aware of all requested nodes
   /// and will only fire DOM events for nodes known to the client.
-  int? get nodeId => referencedNode.pointer?.address;
+  int? get nodeId => referencedNode.forDevtoolsNodeId;
 
   /// Optional. The id of the parent node if any.
   int get parentId {
     if (referencedNode.parentNode != null && referencedNode.parentNode!.pointer != null) {
-      return referencedNode.parentNode!.pointer!.address;
+      return referencedNode.parentNode!.forDevtoolsNodeId;
     } else {
       return 0;
     }
