@@ -55,6 +55,33 @@ class AsyncBindingObjectMethod extends BindingObjectMethod {
 abstract class BindingObject<T> extends Iterable<T> {
   static BindingObjectOperation? bind;
   static BindingObjectOperation? unbind;
+  
+  // fix New version of chrome devTools castrating the last three digits of long targetId num strings and replacing them with 0
+  static int _nodeIdCount = 0;
+  static final Map<int, int> _targetIdToDevNodeIdMap = {};
+  static Map<int, int> get targetIdToDevNodeIdMap => _targetIdToDevNodeIdMap;
+
+  static int getTargetIdByNodeId(int? address) {
+    if (address == null) {
+      return 0;
+    }
+    int targetId = targetIdToDevNodeIdMap.keys.firstWhere((k) => targetIdToDevNodeIdMap[k] == address, orElse: () => 0);
+    return targetId;
+  }
+
+  int get forDevtoolsNodeId {
+    int? nativeAddress = pointer?.address;
+    if (nativeAddress != null) {
+      if (targetIdToDevNodeIdMap[nativeAddress] != null) {
+        return targetIdToDevNodeIdMap[nativeAddress]!;
+      }
+      _nodeIdCount ++;
+      targetIdToDevNodeIdMap[nativeAddress] = _nodeIdCount;
+      return _nodeIdCount;
+    }
+    return 0;
+  }
+  // fix New version of chrome devTools end
 
   // To make sure same kind of WidgetElement only sync once.
   static final Map<Type, bool> _alreadySyncWidgetElements = {};
