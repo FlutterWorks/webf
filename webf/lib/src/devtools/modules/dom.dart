@@ -50,7 +50,7 @@ class InspectDOMModule extends UIInspectorModule {
     rootRenderObject.hitTest(result, position: Offset(x.toDouble(), y.toDouble()));
     if (result.path.first.target is RenderBoxModel) {
       RenderBoxModel lastHitRenderBoxModel = result.path.first.target as RenderBoxModel;
-      int? targetId = lastHitRenderBoxModel.renderStyle.target.forDevtoolsNodeId
+      int? targetId = lastHitRenderBoxModel.renderStyle.target.forDevtoolsNodeId;
       sendToFrontend(
           id,
           JSONEncodableMap({
